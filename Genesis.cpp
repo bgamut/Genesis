@@ -124,8 +124,8 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
 
   for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2)
   {
-		*out1=clipper1.process(4*filter8.process(filter3.process(filter2.process(filter1.process(((*in1)+(*in2))/4)))+filter7.process(filter6.process(filter5.process(filter4.process(3*(*in1-*in2)/4))))+(*in1)/8)*mGain);
-		*out2=clipper2.process(4*filter16.process(filter11.process(filter10.process(filter9.process(((*in1)+(*in2))/4)))+filter15.process(filter14.process(filter13.process(filter12.process(3*(*in1-*in2)/4))))+(*in2)/8)*mGain);
+		*out1=clipper1.process(4*filter8.process(filter3.process(filter2.process(filter1.process(((*in1)+(*in2))/4)))+filter7.process(filter6.process(filter5.process(filter4.process(3*(*in1-*in2)/4))))+(*in1)/16)*mGain);
+		*out2=clipper2.process(4*filter16.process(filter11.process(filter10.process(filter9.process(((*in1)+(*in2))/4)))+filter15.process(filter14.process(filter13.process(filter12.process(3*(*in1-*in2)/4))))+(*in2)/16)*mGain);
   }
 }
 void Genesis::Reset()
