@@ -17,10 +17,10 @@ const int kNumPrograms = 1;
 const double f1=150.0;
 const double f2=300.0;
 const double f3=3000.0;
-const double f4=200.0;
+const double f4=300.0;
 const double f5=750.0;
 const double f6=3000.0;
-const double f7=1500.0;
+const double f7=750.0;
 const double f8=4500.0;
 
 enum EParams
@@ -37,6 +37,10 @@ enum ELayout
   kGainY = 0,
   kKnobFrames = 60
 };
+double LP6::process(double inputValue) {
+  buf0 += cutoff * (inputValue - buf0);
+  return buf0;
+}
 double LP12::process(double inputValue) {
     buf0 += cutoff * (inputValue - buf0);
     buf1 += cutoff * (buf0 - buf1);
@@ -45,10 +49,21 @@ double LP12::process(double inputValue) {
 double LP24::process(double inputValue) {
     buf0 += cutoff * (inputValue - buf0);
     buf1 += cutoff * (buf0 - buf1);
-	buf2 += cutoff * (buf1 - buf2);
+  buf2 += cutoff * (buf1 - buf2);
 	buf3 += cutoff * (buf2 - buf3);	
 	return buf3;
 		    }
+double LP48::process(double inputValue) {
+  buf0 += cutoff * (inputValue - buf0);
+  buf1 += cutoff * (buf0 - buf1);
+  buf2 += cutoff * (buf1 - buf2);
+  buf3 += cutoff * (buf2 - buf3);
+  buf4 += cutoff * (buf3 - buf4);
+  buf5 += cutoff * (buf4 - buf5);
+  buf6 += cutoff * (buf5 - buf6);
+  buf7 += cutoff * (buf6 - buf7);
+  return buf7;
+}
 double HP12::process(double inputValue) {
     buf0 += cutoff * (inputValue - buf0);
     buf1 += cutoff * (buf0 - buf1);
@@ -57,10 +72,22 @@ double HP12::process(double inputValue) {
 double HP24::process(double inputValue) {
     buf0 += cutoff * (inputValue - buf0);
     buf1 += cutoff * (buf0 - buf1);
-	buf2 += cutoff * (buf1 - buf2);
-	buf3 += cutoff * (buf2 - buf3);
-	return inputValue - buf3;
+	  buf2 += cutoff * (buf1 - buf2);
+  	buf3 += cutoff * (buf2 - buf3);
+	  return inputValue - buf3;
     }
+double HP48::process(double inputValue) {
+  buf0 += cutoff * (inputValue - buf0);
+  buf1 += cutoff * (buf0 - buf1);
+  buf2 += cutoff * (buf1 - buf2);
+  buf3 += cutoff * (buf2 - buf3);
+  buf4 += cutoff * (buf3 - buf4);
+  buf5 += cutoff * (buf4 - buf5);
+  buf6 += cutoff * (buf5 - buf6);
+  buf7 += cutoff * (buf6 - buf7);
+  return inputValue - buf7;
+}
+
 double Clipper::process(double inputValue){
 	k = inputValue*pow (atan (pow(abs (inputValue), 100)),1/100);
 	return k; 

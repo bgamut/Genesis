@@ -5,6 +5,25 @@
 #include "IPlug_include_in_plug_hdr.h"
 #include <math.h>
 
+class LP6 {
+public:
+  LP6() :
+  cutoff(0.1),
+  resonance(0.0),
+  buf0(0.0)
+  {
+    calculateFeedbackAmount();
+  };
+  double process(double inputValue);
+  inline void set(double newCutoff) { cutoff = newCutoff; calculateFeedbackAmount(); };
+  inline void setResonance(double newResonance) { resonance = newResonance; calculateFeedbackAmount(); };
+private:
+  double cutoff;
+  double resonance;
+  double feedbackAmount;
+  inline void calculateFeedbackAmount() { feedbackAmount = resonance + resonance/(1.0 - cutoff); }
+  double buf0;
+};
 class LP12 {
 public:
     LP12() :
@@ -50,6 +69,39 @@ private:
     double buf1;
 	double buf2;
 	double buf3;
+};
+class LP48 {
+public:
+  LP48() :
+  cutoff(0.1),
+  resonance(0.0),
+  buf0(0.0),
+  buf1(0.0),
+  buf2(0.0),
+  buf3(0.0),
+  buf4(0.0),
+  buf5(0.0),
+  buf6(0.0),
+  buf7(0.0)
+  {
+    calculateFeedbackAmount();
+  };
+  double process(double inputValue);
+  inline void set(double newCutoff) { cutoff = newCutoff; calculateFeedbackAmount(); };
+  inline void setResonance(double newResonance) { resonance = newResonance; calculateFeedbackAmount(); };
+private:
+  double cutoff;
+  double resonance;
+  double feedbackAmount;
+  inline void calculateFeedbackAmount() { feedbackAmount = resonance + resonance/(1.0 - cutoff); }
+  double buf0;
+  double buf1;
+  double buf2;
+  double buf3;
+  double buf4;
+  double buf5;
+  double buf6;
+  double buf7;
 };
 class HP12 {
 public:
@@ -97,6 +149,39 @@ private:
 	double buf2;
 	double buf3;
 };
+class HP48 {
+public:
+  HP48() :
+  cutoff(0.1),
+  resonance(0.0),
+  buf0(0.0),
+  buf1(0.0),
+  buf2(0.0),
+  buf3(0.0),
+  buf4(0.0),
+  buf5(0.0),
+  buf6(0.0),
+  buf7(0.0)
+  {
+    calculateFeedbackAmount();
+  };
+  double process(double inputValue);
+  inline void set(double newCutoff) { cutoff = newCutoff; calculateFeedbackAmount(); };
+  inline void setResonance(double newResonance) { resonance = newResonance; calculateFeedbackAmount(); };
+private:
+  double cutoff;
+  double resonance;
+  double feedbackAmount;
+  inline void calculateFeedbackAmount() { feedbackAmount = resonance + resonance/(1.0 - cutoff); }
+  double buf0;
+  double buf1;
+  double buf2;
+  double buf3;
+  double buf4;
+  double buf5;
+  double buf6;
+  double buf7;
+};
 class Clipper {
 public:
 	double process(double inputValue);
@@ -127,20 +212,20 @@ private:
   double fq8;
   double mGain;
   HP12 filter1;
-  LP24 filter2;
+  LP48 filter2;
   LP24 filter3;
-  HP24 filter4;
+  HP48 filter4;
   HP24 filter5;
   LP24 filter6;
-  LP12 filter7;
+  LP6 filter7;
   LP12 filter8;
   HP12 filter9;
-  LP24 filter10;
+  LP48 filter10;
   LP24 filter11;
-  HP24 filter12;
+  HP48 filter12;
   HP24 filter13;
   LP24 filter14;
-  LP12 filter15;
+  LP6 filter15;
   LP12 filter16;
   Clipper clipper1;
   Clipper clipper2;
