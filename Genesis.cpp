@@ -6,14 +6,6 @@
 #include <fstream>
 #include <cstddef>
 const int kNumPrograms = 1;
-//const double FQ1 = 0.02137097188;
-//const double FQ2 = 0.04273950357;
-//const double FQ3 = 0.42418130283;
-//const double FQ4 = 0.02849420741;
-//const double FQ5 = 0.1068060613;
-//const double FQ6 = 0.42418130283;
-//const double FQ7 = 0.1068060613;
-//const double FQ8 = 0.63021643604;
 const double f1=150.0;
 const double f2=300.0;
 const double f3=3000.0;
@@ -107,7 +99,7 @@ void LFO::updateIncrement() {
 	mPhaseIncrement = mFrequency * 2 * 3.141952 / mSampleRate;
 }
 double LFO::process(double buffer) {
-		buffer += sin(mPhase)/2048;
+		buffer += sin(mPhase)/16;
 		mPhase += mPhaseIncrement;
 		while (mPhase >= (2 * 3.141952)) {
 			mPhase -= (2 * 3.141952);
@@ -118,6 +110,7 @@ double Clipper::process(double inputValue){
 	k = inputValue*pow (atan (pow(abs (inputValue), 100)),1/100);
 	return k; 
 }
+
 Genesis::Genesis(IPlugInstanceInfo instanceInfo)
   :	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo), mGain(1.)
 {
@@ -147,17 +140,25 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
   double* in2 = inputs[1];
   double* out1 = outputs[0];
   double* out2 = outputs[1];
-
-  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2)
-  {
-	  if (*in1&&*in2 != 0.0)
-	  {
-		  *out1 = clipper1.process(lfo1.process(4*filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 4))) + filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 4)))) + (*in1) / 16)*mGain)));
-		  *out2 = clipper2.process(lfo2.process(4*filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 4))) + filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 4)))) + (*in2) / 16)*mGain)));
+  if (mGain == 0.0 || *in1&&*in2 == 0.0) {
+	  *out1 = 0.0;
+	  *out2 = 0.0;
+  }
+  else {
+	  targetLevel = mGain;
+	  if (targetLevel != currentLevel) {
+		  ramp = (targetLevel - currentLevel) / (nFrames);
+		  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
+			  *out1 = clipper1.process(lfo1.process(8 * filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 4))) + filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 4)))) + (*in1) / 16)))*currentLevel);
+			  *out2 = clipper2.process(lfo2.process(8 * filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 4))) + filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 4)))) + (*in2) / 16)))*currentLevel);
+			  currentLevel += ramp;
+		  }
 	  }
 	  else {
-		  *out1 = 0.0;
-		  *out2 = 0.0;
+		  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
+			  *out1 = clipper1.process(lfo1.process(8 * filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 4))) + filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 4)))) + (*in1) / 16)))*currentLevel);
+			  *out2 = clipper2.process(lfo2.process(8 * filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 4))) + filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 4)))) + (*in2) / 16)))*currentLevel);
+		  }
 	  }
   }
 }
@@ -194,8 +195,8 @@ void Genesis::Reset()
   filter18.set(fq9);
   lfo1.setSampleRate(sr1);
   lfo2.setSampleRate(sr2);
-  lfo1.setFrequency(0.00000000000000000000000001);
-  lfo2.setFrequency(0.00000000000000000000000002);
+  lfo1.setFrequency(1);
+  lfo2.setFrequency(2);
   //notch1.zero();
   //notch2.zero();
   //notch1.onDomainChange(sr2 / sr1);

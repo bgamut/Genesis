@@ -247,8 +247,9 @@ public:
   void ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames);
 
 private:
-  double random1;
-  double random2;
+  double currentLevel= 50.0;
+  double targetLevel;
+  double ramp;
   double sr1;
   double sr2=GetSampleRate();
   double fq1;
