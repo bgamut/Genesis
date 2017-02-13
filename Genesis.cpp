@@ -22,6 +22,7 @@ const double f5=750.0;
 const double f6=3000.0;
 const double f7=750.0;
 const double f8=4500.0;
+const double f9=7000.0;
 
 enum EParams
 {
@@ -72,7 +73,7 @@ double HP12::process(double inputValue) {
 double HP24::process(double inputValue) {
     buf0 += cutoff * (inputValue - buf0);
     buf1 += cutoff * (buf0 - buf1);
-	  buf2 += cutoff * (buf1 - buf2);
+	buf2 += cutoff * (buf1 - buf2);
   	buf3 += cutoff * (buf2 - buf3);
 	  return inputValue - buf3;
     }
@@ -87,7 +88,32 @@ double HP48::process(double inputValue) {
   buf7 += cutoff * (buf6 - buf7);
   return inputValue - buf7;
 }
-
+double Notch::process(double inputValue){
+	buf0 += cutoff * (inputValue - buf0);
+	buf1 += cutoff * (buf0 - buf1);
+	buf2 += cutoff * (buf1 - buf2);
+	buf3 += cutoff * (buf2 - buf3);
+	return inputValue - (buf0 - buf3);
+}
+void LFO::setFrequency(double frequency) {
+	mFrequency = frequency;
+	updateIncrement();
+}
+void LFO::setSampleRate(double sampleRate){
+	mSampleRate = sampleRate;
+	updateIncrement();
+}
+void LFO::updateIncrement() {
+	mPhaseIncrement = mFrequency * 2 * 3.141952 / mSampleRate;
+}
+double LFO::process(double buffer) {
+		buffer += sin(mPhase)/2048;
+		mPhase += mPhaseIncrement;
+		while (mPhase >= (2 * 3.141952)) {
+			mPhase -= (2 * 3.141952);
+		}
+		return buffer;
+}
 double Clipper::process(double inputValue){
 	k = inputValue*pow (atan (pow(abs (inputValue), 100)),1/100);
 	return k; 
@@ -124,22 +150,30 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
 
   for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2)
   {
-		*out1=clipper1.process(4*filter8.process(filter3.process(filter2.process(filter1.process(((*in1)+(*in2))/4)))+filter7.process(filter6.process(filter5.process(filter4.process(3*(*in1-*in2)/4))))+(*in1)/16)*mGain);
-		*out2=clipper2.process(4*filter16.process(filter11.process(filter10.process(filter9.process(((*in1)+(*in2))/4)))+filter15.process(filter14.process(filter13.process(filter12.process(3*(*in1-*in2)/4))))+(*in2)/16)*mGain);
+	  if (*in1&&*in2 != 0.0)
+	  {
+		  *out1 = clipper1.process(lfo1.process(4*filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 4))) + filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 4)))) + (*in1) / 16)*mGain)));
+		  *out2 = clipper2.process(lfo2.process(4*filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 4))) + filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 4)))) + (*in2) / 16)*mGain)));
+	  }
+	  else {
+		  *out1 = 0.0;
+		  *out2 = 0.0;
+	  }
   }
 }
 void Genesis::Reset()
 {
   TRACE;
-  sr=GetSampleRate();
-  fq1=2*sin((3.141952)*f1/sr);
-  fq2=2*sin((3.141952)*f2/sr);
-  fq3=2*sin((3.141952)*f3/sr);
-  fq4=2*sin((3.141952)*f4/sr);
-  fq5=2*sin((3.141952)*f5/sr);
-  fq6=2*sin((3.141952)*f6/sr);
-  fq7=2*sin((3.141952)*f7/sr);
-  fq8=2*sin((3.141952)*f8/sr);
+  sr1=GetSampleRate();
+  fq1=2*sin((3.141952)*f1/sr1);
+  fq2=2*sin((3.141952)*f2/sr1);
+  fq3=2*sin((3.141952)*f3/sr1);
+  fq4=2*sin((3.141952)*f4/sr1);
+  fq5=2*sin((3.141952)*f5/sr1);
+  fq6=2*sin((3.141952)*f6/sr1);
+  fq7=2*sin((3.141952)*f7/sr1);
+  fq8=2*sin((3.141952)*f8/sr1);
+  fq9=2*sin((3.141952)*f9/sr1);
   filter1.set(fq1);
   filter2.set(fq2);
   filter3.set(fq3);
@@ -156,6 +190,23 @@ void Genesis::Reset()
   filter14.set(fq6);
   filter15.set(fq7);
   filter16.set(fq8);
+  filter17.set(fq9);
+  filter18.set(fq9);
+  lfo1.setSampleRate(sr1);
+  lfo2.setSampleRate(sr2);
+  lfo1.setFrequency(0.00000000000000000000000001);
+  lfo2.setFrequency(0.00000000000000000000000002);
+  //notch1.zero();
+  //notch2.zero();
+  //notch1.onDomainChange(sr2 / sr1);
+  //notch2.onDomainChange(sr2 / sr1);
+  //notch1.freq(7000);
+  //notch2.freq(7000);
+  //notch1.width(100);
+  //notch2.width(100);
+  //shifter1.freq(0.01);
+  //shifter2.freq(0.02);
+  //sr2 = GetSampleRate();
   IMutexLock lock(this);
 }
 void Genesis::OnParamChange(int paramIdx)

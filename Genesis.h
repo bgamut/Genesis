@@ -4,6 +4,8 @@
 #define F_PI (3.14159f);
 #include "IPlug_include_in_plug_hdr.h"
 #include <math.h>
+#include "filter.h"
+#include "Effects.h"
 
 class LP6 {
 public:
@@ -182,11 +184,57 @@ private:
   double buf6;
   double buf7;
 };
+class Notch {
+public:
+	Notch() :
+		cutoff(0.1),
+		resonance(1.0),
+		buf0(0.0),
+		buf1(0.0),
+		buf2(0.0),
+		buf3(0.0)
+	{
+		calculateFeedbackAmount();
+	};
+	double process(double inputValue);
+	inline void set(double newCutoff) { cutoff = newCutoff; calculateFeedbackAmount(); };
+	inline void setResonance(double newResonance) { resonance = newResonance; calculateFeedbackAmount(); };
+private:
+	double cutoff;
+	double resonance;
+	double feedbackAmount;
+	inline void calculateFeedbackAmount() { feedbackAmount = resonance + resonance / (1.0 - cutoff); }
+	double buf0;
+	double buf1;
+	double buf2;
+	double buf3;
+
+};
 class Clipper {
 public:
 	double process(double inputValue);
 private:
 	double k;
+};
+class LFO {
+public:
+	LFO() :
+		mPI(2 * acos(0.0)),
+		mFrequency(0.00001),
+		mPhase(0.0),
+		mSampleRate(44100.0) {
+		updateIncrement();
+	};
+	void setFrequency(double Frequency);
+	void setSampleRate(double sampleRate);
+	double process(double buffer);
+private:
+	const double mPI;
+	double mFrequency;
+	double mPhase;
+	double mSampleRate;
+	double mPhaseIncrement;
+	void updateIncrement();
 };
 class Genesis : public IPlug
 {
@@ -201,7 +249,8 @@ public:
 private:
   double random1;
   double random2;
-  double sr;
+  double sr1;
+  double sr2=GetSampleRate();
   double fq1;
   double fq2;
   double fq3;
@@ -210,6 +259,7 @@ private:
   double fq6;
   double fq7;
   double fq8;
+  double fq9;
   double mGain;
   HP12 filter1;
   LP48 filter2;
@@ -227,6 +277,14 @@ private:
   LP24 filter14;
   LP6 filter15;
   LP12 filter16;
+  Notch filter17;
+  Notch filter18;
+  LFO lfo1;
+  LFO lfo2;
+  //gam::Notch<double> notch1;
+  //gam::Notch<double> notch2;
+  //gam::FreqShift<double> shifter1;
+  //gam::FreqShift<double> shifter2;
   Clipper clipper1;
   Clipper clipper2;
 };
