@@ -219,6 +219,7 @@ private:
 class LFO {
 public:
 	LFO() :
+		out(0.0),
 		mPI(2 * acos(0.0)),
 		mFrequency(0.00001),
 		mPhase(0.0),
@@ -227,7 +228,8 @@ public:
 	};
 	void setFrequency(double Frequency);
 	void setSampleRate(double sampleRate);
-	double process(double buffer);
+	void setPhase(double phase);
+	double process(double inputValue);
 private:
 	const double mPI;
 	double mFrequency;
@@ -235,6 +237,7 @@ private:
 	double mSampleRate;
 	double mPhaseIncrement;
 	void updateIncrement();
+	double out;
 };
 class Genesis : public IPlug
 {
