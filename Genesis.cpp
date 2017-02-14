@@ -151,35 +151,24 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
   double* in2 = inputs[1];
   double* out1 = outputs[0];
   double* out2 = outputs[1];
-  {
-	  targetLevel = mGain;
-	  if (targetLevel != currentLevel) {
-		  ramp = (targetLevel - currentLevel) / (32*(nFrames));
-		  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
-			  if (abs(*in1) > 0.00001 || abs(*in2)>0.00001) {
-				  *out1 = clipper1.process(lfo1.process(16 * filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 4)))) + filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8)))) + (*in1) / 8))*currentLevel);
-				  *out2 = clipper2.process(lfo2.process(16 * filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 4)))) + filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8)))) + (*in2) / 8))*currentLevel);
-			  }
-			  else {
-				  *out1 = clipper1.process(16 * filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 4))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel);
-				  *out2 = clipper2.process(16 * filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 4))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel);
-			  }
-			  currentLevel += ramp;
-		  }
+  targetLevel = mGain;
+  if (targetLevel != currentLevel) {
+	  ramp = (targetLevel - currentLevel) / (32 * (nFrames));
+	  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
+		  *out1 = clipper1.process(16 * filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 4))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel);
+		  *out2 = clipper2.process(16 * filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 4))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel);
+		  currentLevel += ramp;
 	  }
-	  else {
-		  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
-			  if (abs(*in1) > 0.00001 || abs(*in2)>0.00001) {
-				  *out1 = clipper1.process(lfo1.process(16 * filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 4)))) + filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8)))) + (*in1) / 8))*currentLevel);
-				  *out2 = clipper2.process(lfo2.process(16 * filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 4)))) + filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8)))) + (*in2) / 8))*currentLevel);
-			  }
-			  else {
-				  *out1 = clipper1.process(16 * filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 4))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel);
-				  *out2 = clipper2.process(16 * filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 4))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel);
-			  }
-		  }
+	  
+  }
+
+  else {
+	  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
+		  *out1 = clipper1.process(16 * filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 4))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel);
+		  *out2 = clipper2.process(16 * filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 4))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel);
 	  }
   }
+
 }
 void Genesis::Reset()
 {
