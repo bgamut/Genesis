@@ -4,8 +4,8 @@
 #define F_PI (3.14159f);
 #include "IPlug_include_in_plug_hdr.h"
 #include <math.h>
-#include "filter.h"
-#include "Effects.h"
+//#include "filter.h"
+//#include "Effects.h"
 
 class LP6 {
 public:
