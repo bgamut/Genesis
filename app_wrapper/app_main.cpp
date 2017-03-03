@@ -44,9 +44,9 @@ void UpdateINI()
   WritePrivateProfileString("audio", "outdev", gState->mAudioOutDev, gINIPath);
 
   sprintf(buf, "%u", gState->mAudioInChanL);
-  WritePrivateProfileString("audio", "in1", buf, gINIPath);
+  WritePrivateProfileString("audio", "p1", buf, gINIPath);
   sprintf(buf, "%u", gState->mAudioInChanR);
-  WritePrivateProfileString("audio", "in2", buf, gINIPath);
+  WritePrivateProfileString("audio", "p2", buf, gINIPath);
   sprintf(buf, "%u", gState->mAudioOutChanL);
   WritePrivateProfileString("audio", "out1", buf, gINIPath);
   sprintf(buf, "%u", gState->mAudioOutChanR);
@@ -724,8 +724,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdPa
         GetPrivateProfileString("audio", "outdev", DEFAULT_OUTPUT_DEV, gState->mAudioOutDev, 100, gINIPath);
 
         //audio
-        gState->mAudioInChanL = GetPrivateProfileInt("audio", "in1", 1, gINIPath); // 1 is first audio input
-        gState->mAudioInChanR = GetPrivateProfileInt("audio", "in2", 2, gINIPath);
+        gState->mAudioInChanL = GetPrivateProfileInt("audio", "p1", 1, gINIPath); // 1 is first audio input
+        gState->mAudioInChanR = GetPrivateProfileInt("audio", "p2", 2, gINIPath);
         gState->mAudioOutChanL = GetPrivateProfileInt("audio", "out1", 1, gINIPath); // 1 is first audio output
         gState->mAudioOutChanR = GetPrivateProfileInt("audio", "out2", 2, gINIPath);
         gState->mAudioInIsMono = GetPrivateProfileInt("audio", "monoinput", 0, gINIPath);
@@ -844,8 +844,8 @@ INT_PTR SWELLAppMain(int msg, INT_PTR parm1, INT_PTR parm2)
           GetPrivateProfileString("audio", "outdev", "Built-in Output", gState->mAudioOutDev, 100, gINIPath);
 
           //audio
-          gState->mAudioInChanL = GetPrivateProfileInt("audio", "in1", 1, gINIPath); // 1 is first audio input
-          gState->mAudioInChanR = GetPrivateProfileInt("audio", "in2", 2, gINIPath);
+          gState->mAudioInChanL = GetPrivateProfileInt("audio", "p1", 1, gINIPath); // 1 is first audio input
+          gState->mAudioInChanR = GetPrivateProfileInt("audio", "p2", 2, gINIPath);
           gState->mAudioOutChanL = GetPrivateProfileInt("audio", "out1", 1, gINIPath); // 1 is first audio output
           gState->mAudioOutChanR = GetPrivateProfileInt("audio", "out2", 2, gINIPath);
           gState->mAudioInIsMono = GetPrivateProfileInt("audio", "monoinput", 0, gINIPath);
