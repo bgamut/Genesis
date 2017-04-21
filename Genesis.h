@@ -284,8 +284,8 @@ private:
   LP12 filter16;
   Notch filter17;
   Notch filter18;
-  LP12 filter19;
-  LP12 filter20;
+  HP12 filter19;
+  HP12 filter20;
   LFO lfo1;
   LFO lfo2;
   //gam::Notch<double> notch1;
