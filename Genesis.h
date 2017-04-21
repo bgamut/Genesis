@@ -1,18 +1,11 @@
 #ifndef __GENESIS__
 #define __GENESIS__
 #define SR (44100.f)  //sample rate
-#define MAX_FRAME_LENGTH 8192
-#include "queue.h"
-
-//#define F_PI (3.14159f);
+#define F_PI (3.14159f);
 #include "IPlug_include_in_plug_hdr.h"
 #include <math.h>
 //#include "filter.h"
 //#include "Effects.h"
-//#include "smbPitchShift.h"
-//#include "simple_pitchshift.h"
-#include <string.h>
-#include <stdio.h>
 
 class LP6 {
 public:
@@ -217,30 +210,6 @@ private:
 	double buf3;
 
 };
-class Shifter {
-public:
-	Shifter() :
-		pitchShift(0.000000001),
-		BufferSize(128),
-		osamp(4),
-		sampleRate(44100)
-	{
-	
-	};
-	inline void setBufferSize(int newBufferLengthFrames) { BufferLengthFrames = newBufferLengthFrames; }
-	inline void setSampleRate(double newSampleRate) { sampleRate = newSampleRate; }
-	inline void setPitchShift(double newPitchShift) { pitchShift = newPitchShift; }
-	double pitchShift;	
-	double sampleRate;
-private:
-	
-	int BufferLengthFrames;
-	int BufferSize;
-	int osamp;
-
-	double* in;
-	double* out;
-};
 class Clipper {
 public:
 	double process(double inputValue);
@@ -295,6 +264,7 @@ private:
   double fq7;
   double fq8;
   double fq9;
+  double fq10;
   double mGain;
   HP12 filter1;
   LP48 filter2;
@@ -314,6 +284,8 @@ private:
   LP12 filter16;
   Notch filter17;
   Notch filter18;
+  LP12 filter19;
+  LP12 filter20;
   LFO lfo1;
   LFO lfo2;
   //gam::Notch<double> notch1;
@@ -322,8 +294,8 @@ private:
   //gam::FreqShift<double> shifter2;
   Clipper clipper1;
   Clipper clipper2;
-  Shifter shifter1;
-  Shifter shifter2;
+  Clipper clipper3;
+  Clipper clipper4;
 };
 
 #endif

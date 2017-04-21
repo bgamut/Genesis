@@ -15,6 +15,7 @@ const double f6=3000.0;
 const double f7=300.0;
 const double f8=4500.0;
 const double f9=7000.0;
+const double f10=40.0;
 
 enum EParams
 {
@@ -157,8 +158,8 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
   if (targetLevel != currentLevel) {
 	  ramp = (targetLevel - currentLevel) / (128 * (nFrames));
 	  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
-		  *out1 = clipper1.process(4 * filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 6))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel);
-		  *out2 = clipper2.process(4 * filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 6))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel);
+		  *out1 = clipper1.process(8 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 6))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel));
+		  *out2 = clipper2.process(8 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 6))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel));
 		  currentLevel += ramp;
 	  }
 	  
@@ -166,8 +167,8 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
 
   else {
 	  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
-		  *out1 = clipper1.process(4 * filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 6))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel);
-		  *out2 = clipper2.process(4 * filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 6))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel);
+		  *out1 = clipper1.process(8 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 6))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel));
+		  *out2 = clipper2.process(8 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 6))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel));
 	  }
   }
 
@@ -185,6 +186,7 @@ void Genesis::Reset()
   fq7=2*sin((PI)*f7/sr1);
   fq8=2*sin((PI)*f8/sr1);
   fq9=2*sin((PI)*f9/sr1);
+  fq10=2*sin((PI)*f10/sr1);
   filter1.set(fq1);
   filter2.set(fq2);
   filter3.set(fq3);
@@ -203,6 +205,8 @@ void Genesis::Reset()
   filter16.set(fq8);
   filter17.set(fq9);
   filter18.set(fq9);
+  filter19.set(fq10);
+  filter20.set(fq10);
   lfo1.setSampleRate(sr1);
   lfo2.setSampleRate(sr2);
   lfo1.setFrequency(0.5);
