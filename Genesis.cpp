@@ -156,10 +156,10 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
   double* out2 = outputs[1];
   targetLevel = mGain;
   if (targetLevel != currentLevel) {
-	  ramp = (targetLevel - currentLevel) / (128 * (nFrames));
+	  ramp = (targetLevel - currentLevel) / (4 * (nFrames));
 	  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
-		  *out1 = clipper1.process(8 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 6))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel));
-		  *out2 = clipper2.process(8 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 6))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel));
+		  *out1 = clipper1.process(4*(filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8)))))))) + ((*in1) / 2))*currentLevel);
+		  *out2 = clipper2.process(4*(filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8)))))))) + ((*in2) / 2))*currentLevel);
 		  currentLevel += ramp;
 	  }
 	  
@@ -167,8 +167,8 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
 
   else {
 	  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
-		  *out1 = clipper1.process(8 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 6))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel));
-		  *out2 = clipper2.process(8 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 6))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel));
+      *out1 = clipper1.process(4*(filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8)))))))) + ((*in1) / 2))*currentLevel);
+      *out2 = clipper2.process(4*(filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8)))))))) + ((*in2) / 2))*currentLevel);
 	  }
   }
 
