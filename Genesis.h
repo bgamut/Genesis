@@ -239,6 +239,40 @@ private:
 	void updateIncrement();
 	double out;
 };
+class Compressor{
+public:
+  Compressor():
+    peakOutput(0.0),
+    peakB0Attack(1.0),
+    outputGain(0.0),
+    dynamicsAttackTime(0.0),
+    dynamicsReleaseTime(0.5),
+    dynamicsOutputGain(0.0) {
+    set(44100);
+  };
+  void set(double sampleRate);
+  double dynamics(double inputGain);
+  double peakFinder(double inputValue);
+private:
+  double inputAbs;
+  double peakfinderB0;
+  double peakOutput;
+  double fs;
+  double peakfinderB0Attack;
+  double peakfinderFinderA1;
+  double peakfinderB0Release;
+  double peakfinderReleaseTime;
+  double peakB0Attack;
+  double peakfinderA1;
+  double outputGain;
+  double dynamicsAttackTime;
+  double dynamicsB0Attack;
+  double dynamicsReleaseTime;
+  double dynamicsB0Release;
+  double dynamicsOutputGain;
+  double dynamicsB0;
+  
+};
 class Genesis : public IPlug
 {
 public:
@@ -254,7 +288,7 @@ private:
   double targetLevel;
   double ramp;
   double sr1;
-  double sr2=GetSampleRate();
+  double sr2;
   double fq1;
   double fq2;
   double fq3;
@@ -266,6 +300,15 @@ private:
   double fq9;
   double fq10;
   double mGain;
+  double l=0.0;
+  double r=0.0;
+  double peakOutL=0.0;
+  double peakOutR=0.0;
+  double peakSumDb=0.0;
+  double gainDb=0.0;
+  double gain=0.0;
+  double ratio=10000000000.0;
+  double thresholdDb=-20.0;
   HP12 filter1;
   LP48 filter2;
   LP24 filter3;
@@ -288,6 +331,8 @@ private:
   HP12 filter20;
   LFO lfo1;
   LFO lfo2;
+  Compressor comp1;
+  Compressor comp2;
   //gam::Notch<double> notch1;
   //gam::Notch<double> notch2;
   //gam::FreqShift<double> shifter1;
