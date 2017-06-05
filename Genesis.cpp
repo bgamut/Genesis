@@ -16,6 +16,10 @@ const double f7=300.0;
 const double f8=4500.0;
 const double f9=7000.0;
 const double f10=40.0;
+const double f11=105;
+const double f12=750;
+const double f13=3000;
+const double f14=133.1;
 enum EParams
 {
   kGain = 0,
@@ -31,7 +35,8 @@ enum ELayout
   kKnobFrames = 60
 };
 double toDB (double inputValue){
-  return 20.0*log10f(inputValue);
+  return 20.0 * ((inputValue) > 0.00001 ? log10f(inputValue) : -6.3);
+  //return 20.0*log10f(inputValue);
 }
 double toVolume(double dB){
   return powf(10.0, 0.05*dB);
@@ -131,7 +136,7 @@ double Clipper::process(double inputValue){
 }
 
 double Compressor::peakFinder(double inputValue){
-  inputAbs = fabs(inputValue);
+  inputAbs = abs(inputValue);
   if(inputAbs>peakOutput){
     peakfinderB0=peakfinderB0Attack;
   }
@@ -145,24 +150,79 @@ void Compressor::set(double sampleRate){
   fs=sampleRate;
   peakOutput=0.0;
   peakB0Attack=1.0;
-  peakfinderA1=expf(-1.0/(peakfinderReleaseTime*fs));
+  peakfinderA1=exp(-1.0/(peakfinderReleaseTime*fs));
   peakfinderB0Release=1.0-peakfinderA1;
   outputGain=0.0;
   dynamicsAttackTime=0.0;
-  dynamicsB0Attack= 1.0-expf(-1.0/(dynamicsAttackTime*fs));
+  dynamicsB0Attack= 1.0-exp(-1.0/(dynamicsAttackTime*fs));
   dynamicsReleaseTime=0.5;
-  dynamicsB0Release=1.0-expf(-1.0/(dynamicsReleaseTime*fs));
+  dynamicsB0Release=1.0-exp(-1.0/(dynamicsReleaseTime*fs));
   dynamicsOutputGain=0.0;
 }
 double Compressor::dynamics(double inputGain){
-  if(inputGain<outputGain){
+  if(inputGain<dynamicsOutputGain){
     dynamicsB0=dynamicsB0Attack;
   }
   else{
     dynamicsB0=dynamicsB0Release;
   }
-  dynamicsOutputGain += dynamicsB0*(inputGain-outputGain);
+  dynamicsOutputGain += dynamicsB0*(inputGain-dynamicsOutputGain);
   return dynamicsOutputGain;
+}
+void Gate::set(double sampleRate){
+  sr=sampleRate;
+  releaseTime=0.2;
+  attackTime=0.00;
+  threshold=0.001;
+  release=1.0-exp(-1.0/(releaseTime*sr));
+  hold=holdTime*sr;
+  //attack=1.0-exp(-1.0/(attackTime*sr));
+  attack=1.0-exp(-1.0/1.0);
+}
+double Gate::process(double inputValue){
+  if(tick>int(hold)){
+    if(threshold>(inputValue*inputValue)){
+      gain*=release;
+    }
+    else{
+      tick=0;
+      gain*=attack;
+    }
+  }
+  else{
+    tick+=1;
+    gain=1.0;
+  }
+  outputValue=inputValue*gain;
+  return inputValue;
+}
+void Limiter::set(double sampleRate){
+  attackGain=exp(-1/(attackTime*sampleRate));
+  releaseGain=exp(-1/(releaseTime*sampleRate));
+  threshold=toDB(-6.0);
+  buffer=0.0;
+  envelope=0.0;
+  gain=1.0;
+}
+double Limiter::process(double input){
+  buffer=abs(input);
+  if (envelope<buffer){
+    envelope*=attackGain;
+    envelope+=(1-attackGain)*buffer;
+  }
+  else{
+    envelope*=releaseGain;
+    envelope+=(1-releaseGain)*buffer;
+  }
+  if (envelope>threshold&&input>0.0){
+    return input-((envelope-threshold)*2);
+  }
+  else if(envelope>threshold&&input<0.0){
+    return input+((envelope-threshold)*2);
+  }
+  else{
+    return input;
+  }
 }
 Genesis::Genesis(IPlugInstanceInfo instanceInfo)
   :	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo), mGain(1.)
@@ -170,7 +230,7 @@ Genesis::Genesis(IPlugInstanceInfo instanceInfo)
   TRACE;
 
   //arguments are: name, defaultVal, minVal, maxVal, step, label
-  GetParam(kGain)->InitDouble("Gain", 50., 0., 100.0, 0.01, "%");
+  GetParam(kGain)->InitDouble("Gain", 50., 0., 1000.0, 0.1, "%");
   GetParam(kGain)->SetShape(1.);
 
   IGraphics* pGraphics = MakeGraphics(this, kWidth, kHeight);
@@ -197,20 +257,22 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
   if (targetLevel != currentLevel) {
 	  ramp = (targetLevel - currentLevel) / (4 * (nFrames));
 	  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
-		  l = clipper1.process(8 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 6))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel));
-		  r = clipper2.process(8 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 6))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel));
-      peakOutL = comp1.peakFinder(l);
-      peakOutR = comp2.peakFinder(r);
-      peakSumDb = toDB(comp1.peakFinder(l)+comp2.peakFinder(r))/2.0;
+      l = gate1.process(*in1*currentLevel);
+      r = gate2.process(*in2*currentLevel);
+      left = clipper1.process(filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 6))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 8))))))));
+      right = clipper2.process(filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 6))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) / 8))))))));
+      peakOutL = comp1.peakFinder(left);
+      peakOutR = comp2.peakFinder(right);
+      peakSumDb = toDB(peakOutL+peakOutR)/2.0;
       if(peakSumDb<thresholdDb){
         gainDb=0.0;
       }
       else{
-        gainDb= -(peakSumDb-thresholdDb)*(1.0-(1.0/ratio));
+        gainDb= -((peakSumDb-thresholdDb)*(ratio));
       }
       gain=toVolume(comp1.dynamics(gainDb));
-      *out1=l*gain;
-      *out2=r*gain;
+      *out1=limiter1.process(left*gain);
+      *out2=limiter2.process(right*gain);
 		  currentLevel += ramp;
 	  }
 	  
@@ -218,20 +280,22 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
 
   else {
 	  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
-      l = clipper1.process(8 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((*in1) + (*in2)) / 6))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (*in1 - *in2) / 8))))) + (*in1) / 8))*currentLevel));
-      r = clipper2.process(8 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((*in1) + (*in2)) / 6))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (*in1 - *in2) / 8))))) + (*in2) / 8))*currentLevel));
-      peakOutL = comp1.peakFinder(l);
-      peakOutR = comp2.peakFinder(r);
-      peakSumDb = toDB(comp1.peakFinder(l)+comp2.peakFinder(r))/2.0;
+      l = gate1.process(*in1*currentLevel);
+      r = gate2.process(*in2*currentLevel);
+      left = clipper1.process(filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 6))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 8))))))));
+      right = clipper2.process(filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 6))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) / 8))))))));
+      peakOutL = comp1.peakFinder(left);
+      peakOutR = comp2.peakFinder(right);
+      peakSumDb = toDB(peakOutL+peakOutR)/2.0;
       if(peakSumDb<thresholdDb){
         gainDb=0.0;
       }
       else{
-        gainDb= -(peakSumDb-thresholdDb)*(1.0-1.0/ratio);
+        gainDb= -((peakSumDb-thresholdDb)*(ratio));
       }
       gain=toVolume(comp1.dynamics(gainDb));
-      *out1=l*gain;
-      *out2=r*gain;
+      *out1=limiter1.process(left*gain);
+      *out2=limiter2.process(right*gain);
 	  }
   }
 
@@ -240,6 +304,7 @@ void Genesis::Reset()
 {
   TRACE;
   sr1=GetSampleRate();
+  bs1=GetBlockSize();
   fq1=2*sin((PI)*f1/sr1);
   fq2=2*sin((PI)*f2/sr1);
   fq3=2*sin((PI)*f3/sr1);
@@ -250,8 +315,21 @@ void Genesis::Reset()
   fq8=2*sin((PI)*f8/sr1);
   fq9=2*sin((PI)*f9/sr1);
   fq10=2*sin((PI)*f10/sr1);
-  ratio=64.0;
-  thresholdDb=-2.0;
+  fq11=2*sin((PI)*f11/sr1);
+  fq12=2*sin((PI)*f12/sr1);
+  fq13=2*sin((PI)*f13/sr1);
+  fq14=2*sin((PI)*f14/sr1);
+  l=0.0;
+  r=0.0;
+  left=0.0;
+  right=0.0;
+  peakOutL=0.0;
+  peakOutR=0.0;
+  peakSumDb=0.0;
+  gainDb=0.0;
+  gain=0.0;
+  ratio=10.0;
+  thresholdDb=(-12.0);
   filter1.set(fq1);
   filter2.set(fq2);
   filter3.set(fq3);
@@ -272,14 +350,26 @@ void Genesis::Reset()
   filter18.set(fq9);
   filter19.set(fq10);
   filter20.set(fq10);
+  filter21.set(fq11);
+  filter22.set(fq11);
+  filter23.set(fq12);
+  filter24.set(fq12);
+  filter25.set(fq13);
+  filter26.set(fq13);
+  filter27.set(fq14);
+  filter28.set(fq14);
   lfo1.setSampleRate(sr1);
   lfo2.setSampleRate(sr2);
   lfo1.setFrequency(0.5);
   lfo2.setFrequency(0.5);
   lfo1.setPhase(0.0);
   lfo2.setPhase(PI);
+  gate1.set(sr1);
+  gate2.set(sr1);
   comp1.set(sr1);
   comp2.set(sr1);
+  limiter1.set(sr1);
+  limiter2.set(sr1);
   //notch1.zero();
   //notch2.zero();
   //notch1.onDomainChange(sr2 / sr1);
