@@ -273,6 +273,47 @@ private:
   double dynamicsB0;
   
 };
+class Limiter{
+public:
+  double process(double input);
+  void set(double sampleRate);
+private:
+  double attackTime;
+  double releaseTime;
+  double attackGain;
+  double releaseGain;
+  double buffer;
+  double threshold;
+  double envelope;
+  double gain;
+};
+class Gate{
+public:
+  Gate():
+  releaseTime(0.2),
+  sr(44100),
+  threshold(0.001),
+  outputValue(0.0),
+  gain(1.0),
+  holdTime(1.0),
+  attackTime(0.01){
+    set(44100.0);
+  };
+  double process(double inputValue);
+  void set(double sampleRate);
+private:
+  double releaseTime;
+  double sr;
+  double release;
+  double threshold;
+  double outputValue;
+  double gain;
+  int tick;
+  double hold;
+  double holdTime;
+  double attack;
+  double attackTime;
+};
 class Genesis : public IPlug
 {
 public:
@@ -289,6 +330,7 @@ private:
   double ramp;
   double sr1;
   double sr2;
+  double bs1;
   double fq1;
   double fq2;
   double fq3;
@@ -299,16 +341,22 @@ private:
   double fq8;
   double fq9;
   double fq10;
+  double fq11;
+  double fq12;
+  double fq13;
+  double fq14;
   double mGain;
   double l=0.0;
   double r=0.0;
+  double left=0.0;
+  double right=0.0;
   double peakOutL=0.0;
   double peakOutR=0.0;
   double peakSumDb=0.0;
   double gainDb=0.0;
   double gain=0.0;
-  double ratio=10000000000.0;
-  double thresholdDb=-20.0;
+  double ratio=10.0;
+  double thresholdDb=(-12.0);
   HP12 filter1;
   LP48 filter2;
   LP24 filter3;
@@ -329,8 +377,18 @@ private:
   Notch filter18;
   HP12 filter19;
   HP12 filter20;
+  HP24 filter21;
+  HP24 filter22;
+  LP12 filter23;
+  LP12 filter24;
+  LP12 filter25;
+  LP12 filter26;
+  HP12 filter27;
+  HP12 filter28;
   LFO lfo1;
   LFO lfo2;
+  Gate gate1;
+  Gate gate2;
   Compressor comp1;
   Compressor comp2;
   //gam::Notch<double> notch1;
@@ -341,6 +399,8 @@ private:
   Clipper clipper2;
   Clipper clipper3;
   Clipper clipper4;
+  Limiter limiter1;
+  Limiter limiter2;
 };
 
 #endif
