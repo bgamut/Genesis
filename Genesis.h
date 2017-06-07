@@ -295,7 +295,7 @@ public:
   void set(double attackMs, double releaseMs, double threshold, int sampleRate);
   EnvelopeFollower ef;
 private:
-  double threshold;
+  double th;
   double temp;
 };
 class Gate{
