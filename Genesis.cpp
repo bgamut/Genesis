@@ -210,13 +210,13 @@ void EnvelopeFollower::process(double input){
 void Limiter::set(double attackMs, double releaseMs, double threshold, int sampleRate){
   ef.envelope=0.0;
   ef.set(attackMs, releaseMs, sampleRate);
-  threshold=threshold;
+  th=threshold;
 }
 double Limiter::process(double input){
   temp = input;
   ef.process(temp);
-  if(ef.envelope>0.5){
-    return input*(0.5/ef.envelope);
+  if(ef.envelope>th){
+    return input*(th/ef.envelope);
   }
   else{
     return input;
@@ -259,27 +259,25 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
 	  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
       l = gate1.process(*in1*currentLevel);
       r = gate2.process(*in2*currentLevel);
-      left =filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 8)))))));
-      right = filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) / 8)))))));
+      left =clipper1.process(limiter1.process(filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 8)))))))));
+      right = clipper2.process(limiter2.process(filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) / 8)))))))));
       
-      
-      *out1=limiter1.process(left);
-      *out2=limiter2.process(right);
+      *out1=clipper3.process(limiter3.process((left)));
+      *out2=clipper4.process(limiter4.process((right)));
 		  currentLevel += ramp;
 	  }
 	  
   }
-
+  
   else {
 	  for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
       l = gate1.process(*in1*currentLevel);
       r = gate2.process(*in2*currentLevel);
-      left =filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 8)))))));
-      right = filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) / 8)))))));
+      left =clipper1.process(limiter1.process(filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 8)))))))));
+      right = clipper2.process(limiter2.process(filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) / 8)))))))));
       
-      *out1=limiter1.process(left);
-      *out2=limiter2.process(right);
-
+      *out1=clipper3.process(limiter3.process((left)));
+      *out2=clipper4.process(limiter4.process((right)));
 	  }
   }
 
@@ -357,10 +355,10 @@ void Genesis::Reset()
   gate2.set(sr1);
   comp1.set(sr1);
   comp2.set(sr1);
-  limiter1.set(0.01,500.0,1.0,sr1);
-  limiter2.set(0.01,500.0,1.0,sr1);
-  limiter3.set(20.0,500.0,0.5,sr1);
-  limiter4.set(20.0,500.0,0.5,sr1);
+  limiter1.set(10.0,500.0,0.5,sr1);
+  limiter2.set(10.0,500.0,0.5,sr1);
+  limiter3.set(0.03,500.0,1.0,sr1);
+  limiter4.set(0.03,500.0,1.0,sr1);
   //notch1.zero();
   //notch2.zero();
   //notch1.onDomainChange(sr2 / sr1);
