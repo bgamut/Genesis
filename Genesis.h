@@ -273,19 +273,30 @@ private:
   double dynamicsB0;
   
 };
+class EnvelopeFollower
+{
+public:
+  EnvelopeFollower():
+    envelope(0)
+  {
+    set(10.0,200.0,44100);
+  };
+  void set(double attackMs, double releaseMs, int sampleRate);
+  void process(double input);
+  double envelope;
+private:
+  double temp;
+  double attack;
+  double release;
+};
 class Limiter{
 public:
   double process(double input);
-  void set(double sampleRate);
+  void set(double attackMs, double releaseMs, double threshold, int sampleRate);
+  EnvelopeFollower ef;
 private:
-  double attackTime;
-  double releaseTime;
-  double attackGain;
-  double releaseGain;
-  double buffer;
   double threshold;
-  double envelope;
-  double gain;
+  double temp;
 };
 class Gate{
 public:
@@ -325,6 +336,11 @@ public:
   void ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames);
 
 private:
+  double attackTime;
+  double attackCoeff;
+  double releaseTime;
+  double releaseCoeff;
+  double envelope=0.0;
   double currentLevel= 50.0;
   double targetLevel;
   double ramp;
@@ -352,11 +368,12 @@ private:
   double right=0.0;
   double peakOutL=0.0;
   double peakOutR=0.0;
-  double peakSumDb=0.0;
+  double peakSum=0.0;
   double gainDb=0.0;
   double gain=0.0;
   double ratio=10.0;
   double thresholdDb=(-12.0);
+  double targetGain;
   HP12 filter1;
   LP48 filter2;
   LP24 filter3;
@@ -401,6 +418,8 @@ private:
   Clipper clipper4;
   Limiter limiter1;
   Limiter limiter2;
+  Limiter limiter3;
+  Limiter limiter4;
 };
 
 #endif
