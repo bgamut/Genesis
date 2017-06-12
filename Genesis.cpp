@@ -20,6 +20,8 @@ const double f11=105;
 const double f12=750;
 const double f13=3000;
 const double f14=133.1;
+const double f15=275.0;
+const double f16=12000.0;
 enum EParams
 {
   kGain = 0,
@@ -130,13 +132,13 @@ double LFO::process(double inputValue) {
 }
 double Clipper::process(double inputValue){
   //k = inputValue*pow (atan (pow(abs (inputValue), 100)),1/100);
-  k=inputValue*pow (atan (pow(abs (inputValue), 5)),1/13);
+  k=inputValue*pow (atan (pow(fabs (inputValue), 5)),1/13);
   //k= atan(pow((inputValue),(5/13)));
   return k;
 }
 
 double Compressor::peakFinder(double inputValue){
-  inputAbs = abs(inputValue);
+  inputAbs = fabs(inputValue);
   if(inputAbs>peakOutput){
     peakfinderB0=peakfinderB0Attack;
   }
@@ -243,6 +245,22 @@ Genesis::Genesis(IPlugInstanceInfo instanceInfo)
   
   //MakePreset("preset 1", ... );
   MakeDefaultPreset((char *) "-", kNumPrograms);
+  if (GetAPI() == kAPIVST2) // for VST2 we name individual outputs
+  {
+    SetInputLabel(0, "L process");
+    SetInputLabel(1, "R process");
+    SetInputLabel(2, "L raw");
+    SetInputLabel(3, "R raw");
+    SetOutputLabel(0, "mixed L");
+    SetOutputLabel(1, "mixed R");
+  }
+  else // for AU and VST3 we name buses
+  {
+    SetInputBusLabel(0, "process");
+    SetInputBusLabel(1, "raw");
+    SetOutputBusLabel(0, "output");
+  }
+
 }
 Genesis::~Genesis() {}
 void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFrames)
@@ -250,34 +268,36 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
   // Mutex is already locked for us.
   double* in1 = inputs[0];
   double* in2 = inputs[1];
+  double* in3 = inputs[2];
+  double* in4 = inputs[3];
   double* out1 = outputs[0];
   double* out2 = outputs[1];
   targetLevel = mGain;
   envelope=0.0;
   if (targetLevel != currentLevel) {
     ramp = (targetLevel - currentLevel) / (4 * (nFrames));
-    for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
-      l = gate1.process(*in1*currentLevel);
-      r = gate2.process(*in2*currentLevel);
-      left =limiter3.process(limiter1.process(filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 8)))))))));
-      right = limiter4.process(limiter2.process(filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) / 8)))))))));
+    for (int s = 0; s < nFrames; ++s, ++in1, ++in2,++in3,++in4, ++out1, ++out2) {
+      l = 3.0*gate1.process(filter31.process(filter29.process(*in1*currentLevel)));
+      r = 3.0*gate2.process(filter32.process(filter30.process(*in2*currentLevel)));
+      left =limiter3.process(limiter1.process((*in3*2.0)+7*filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 7)))))))));
+      right = limiter4.process(limiter2.process((*in4*2.0)+7*filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) /7)))))))));
       
-      *out1=clipper3.process(clipper1.process((left)));
-      *out2=clipper4.process(clipper2.process((right)));
+      *out1=clipper3.process(clipper1.process((left)))/2.1;
+      *out2=clipper4.process(clipper2.process((right)))/2.1;
       currentLevel += ramp;
     }
     
   }
   
   else {
-    for (int s = 0; s < nFrames; ++s, ++in1, ++in2, ++out1, ++out2) {
-      l = gate1.process(*in1*currentLevel);
-      r = gate2.process(*in2*currentLevel);
-      left =limiter3.process(limiter1.process(filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 8)))))))));
-      right = limiter4.process(limiter2.process(filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) / 8)))))))));
+    for (int s = 0; s < nFrames; ++s, ++in1, ++in2,++in3,++in4, ++out1, ++out2) {
+      l = 3.0*filter31.process(filter29.process(gate1.process(*in1*currentLevel)));
+      r = 3.0*filter32.process(filter30.process(gate2.process(*in2*currentLevel)));
+      left =limiter3.process(limiter1.process((*in3*2.0)+7*filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 7)))))))));
+      right = limiter4.process(limiter2.process((*in4*2.0)+7*filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) /7)))))))));
       
-      *out1=clipper3.process(clipper1.process((left)));
-      *out2=clipper4.process(clipper2.process((right)));
+      *out1=clipper3.process(clipper1.process((left)))/2.1;
+      *out2=clipper4.process(clipper2.process((right)))/2.1;
     }
   }
   
@@ -302,6 +322,8 @@ void Genesis::Reset()
   fq12=2*sin((PI)*f12/sr1);
   fq13=2*sin((PI)*f13/sr1);
   fq14=2*sin((PI)*f14/sr1);
+  fq15=2*sin((PI)*f15/sr1);
+  fq16=2*sin((PI)*f16/sr1);
   l=0.0;
   r=0.0;
   left=0.0;
@@ -345,6 +367,10 @@ void Genesis::Reset()
   filter26.set(fq13);
   filter27.set(fq14);
   filter28.set(fq14);
+  filter29.set(fq15);
+  filter30.set(fq15);
+  filter31.set(fq16);
+  filter32.set(fq16);
   lfo1.setSampleRate(sr1);
   lfo2.setSampleRate(sr2);
   lfo1.setFrequency(0.5);
@@ -359,6 +385,8 @@ void Genesis::Reset()
   limiter2.set(10.0,500.0,0.5,sr1);
   limiter3.set(0.03,500.0,1.0,sr1);
   limiter4.set(0.03,500.0,1.0,sr1);
+  limiter5.set(0.03,500.0,0.25,sr1);
+  limiter6.set(0.03,500.0,0.25,sr1);
   //notch1.zero();
   //notch2.zero();
   //notch1.onDomainChange(sr2 / sr1);
