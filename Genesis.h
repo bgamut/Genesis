@@ -283,6 +283,7 @@ public:
   };
   void set(double attackMs, double releaseMs, int sampleRate);
   void process(double input);
+  double sidechain(double input, double sidechainSignal);
   double envelope;
 private:
   double temp;
@@ -361,6 +362,8 @@ private:
   double fq12;
   double fq13;
   double fq14;
+  double fq15;
+  double fq16;
   double mGain;
   double l=0.0;
   double r=0.0;
@@ -402,6 +405,10 @@ private:
   LP12 filter26;
   HP12 filter27;
   HP12 filter28;
+  HP24 filter29;
+  HP24 filter30;
+  LP24 filter31;
+  LP24 filter32;
   LFO lfo1;
   LFO lfo2;
   Gate gate1;
@@ -420,6 +427,12 @@ private:
   Limiter limiter2;
   Limiter limiter3;
   Limiter limiter4;
+  Limiter limiter5;
+  Limiter limiter6;
+  EnvelopeFollower sidechain1;
+  EnvelopeFollower sidechain2;
+  EnvelopeFollower sidechain3;
+  EnvelopeFollower sidechain4;
 };
 
 #endif
