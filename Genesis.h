@@ -364,6 +364,8 @@ private:
   double fq14;
   double fq15;
   double fq16;
+  double fq17;
+  double fq18;
   double mGain;
   double l=0.0;
   double r=0.0;
@@ -409,6 +411,10 @@ private:
   HP24 filter30;
   LP24 filter31;
   LP24 filter32;
+  LP24 filter33;
+  LP24 filter34;
+  LP12 filter35;
+  LP12 filter36;
   LFO lfo1;
   LFO lfo2;
   Gate gate1;
