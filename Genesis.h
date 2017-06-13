@@ -411,10 +411,10 @@ private:
   HP24 filter30;
   LP24 filter31;
   LP24 filter32;
-  HP24 filter33;
-  HP24 filter34;
-  HP12 filter35;
-  HP12 filter36;
+  HP48 filter33;
+  HP48 filter34;
+  HP24 filter35;
+  HP24 filter36;
   LFO lfo1;
   LFO lfo2;
   Gate gate1;
