@@ -210,6 +210,29 @@ private:
 	double buf3;
 
 };
+class Eq3{
+public:
+  Eq3():
+    lg(0.25),
+    mg(0.125),
+    hg(4.0)
+  {
+    lf.setResonance(0.0);
+    mf1.setResonance(0.0);
+    mf2.setResonance(0.0);
+    hf.setResonance(0.0);
+  }
+  double process(double inputValue);
+  void set(int sampleRate);
+private:
+  LP24 lf;
+  HP24 mf1;
+  LP24 mf2;
+  HP24 hf;
+  double lg;
+  double mg;
+  double hg;
+};
 class Clipper {
 public:
 	double process(double inputValue);
@@ -326,6 +349,45 @@ private:
   double attack;
   double attackTime;
 };
+class Xcomp{
+public:
+  void set(int sampleRate);
+  double process(double inputValue);
+private:
+  int sampleRate;
+  double fRec2[2];
+  double fRec1[2];
+  double fRec0[2];
+  double fConst0;
+  double fConst1;
+  double fConst2;
+  double fConst3;
+  double fConst4;
+  double fTemp0;
+  double fTemp1;
+  double fTemp2;
+  double output;
+};
+
+class Xlimiter{
+public:
+  void set(int sampleRate);
+  double process(double inputValue);
+private:
+  int sampleRate;
+  double fRec2[2];
+  double fRec1[2];
+  double fRec0[2];
+  double b1;
+  double b2;
+  double attack;
+  double release;
+  double temp;
+  double mag;
+  double env;
+  double output;
+};
+
 class Genesis : public IPlug
 {
 public:
@@ -415,6 +477,8 @@ private:
   HP48 filter34;
   HP24 filter35;
   HP24 filter36;
+  Eq3 eq1;
+  Eq3 eq2;
   LFO lfo1;
   LFO lfo2;
   Gate gate1;
@@ -435,6 +499,10 @@ private:
   Limiter limiter4;
   Limiter limiter5;
   Limiter limiter6;
+  Xcomp xcomp1;
+  Xcomp xcomp2;
+  Xlimiter xlimiter1;
+  Xlimiter xlimiter2;
   EnvelopeFollower sidechain1;
   EnvelopeFollower sidechain2;
   EnvelopeFollower sidechain3;
