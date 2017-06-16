@@ -102,6 +102,15 @@ double Notch::process(double inputValue){
   buf3 += cutoff * (buf2 - buf3);
   return inputValue - (buf0 - buf3);
 }
+void Eq3::set(int sampleRate){
+  lf.set(250*2*sin((PI)/sampleRate));
+  mf1.set(250*2*sin((PI)/sampleRate));
+  mf2.set(2500*2*sin((PI)/sampleRate));
+  hf.set(2500*2*sin((PI)/sampleRate));
+}
+double Eq3::process(double input){
+  return (lg*lf.process(input))+(mg*mf2.process(mf1.process(input)))+(hg*hf.process(input));
+}
 void LFO::setFrequency(double frequency) {
   mFrequency = frequency;
   updateIncrement();
@@ -227,6 +236,38 @@ double Limiter::process(double input){
   }
 }
 
+void Xcomp::set(int sampleRate){
+  sampleRate = sampleRate;
+		fConst0 = fmin(192000.0, fmax(1000.0, double(sampleRate)));
+		fConst1 = expf((0.0 - (2500.0 / fConst0)));
+		fConst2 = (1.0 - fConst1);
+		fConst3 = expf((0.0 - (1250.0 / fConst0)));
+		fConst4 = expf((0.0 - (2.0 / fConst0)));
+    fTemp0=0.0;
+    fTemp1=0.0;
+    fTemp2=0.0;
+    for (int i =0; i<2; ++i){
+      fRec0[i]=0.0;
+      fRec1[i]=0.0;
+      fRec2[i]=0.0;
+    }
+  
+}
+double Xcomp::process(double input){
+  fTemp0=input;
+  fTemp1=fabs(fTemp0);
+  fTemp2 = ((fRec1[1]>fTemp1)?fConst4:fConst3);
+  fRec2[0] = ((fRec2[1] * fTemp2) + ((1.0f - fTemp2) * fTemp1));
+  fRec1[0] = fRec2[0];
+  fRec0[0] = ((fConst1 * fRec0[1]) + (fConst2 * (0.0 - (0.949999988 * fmax(((20.0 * log10f(fRec1[0])) + 30.0), 0.0)))));
+  output = double((powf(10.0, (0.0500000007 * fRec0[0])) * fTemp0));
+  fRec2[1] = fRec2[0];
+  fRec1[1] = fRec1[0];
+  fRec0[1] = fRec0[0];
+  return output;
+}
+
+
 Genesis::Genesis(IPlugInstanceInfo instanceInfo)
 :	IPLUG_CTOR(kNumParams, kNumPrograms, instanceInfo), mGain(1.)
 {
@@ -282,11 +323,11 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
     r = filter36.process(filter34.process(filter32.process(filter30.process(gate2.process(*in2*currentLevel)))));
     
     
-    left =(*in3*2.1)+6*filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l) / 7)))))));
-    right = (*in4*2.1)+6*filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r) /7)))))));
+    left =(clipper3.process(clipper1.process((*in3*5.0)+6*filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 16))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l)/7)))))))))/10.0);
+    right=(clipper4.process(clipper2.process((*in4*5.0)+6*filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 16))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r)/7)))))))))/10.0);
 
-    *out1=clipper3.process(clipper1.process((left)))/2.2;
-    *out2=clipper4.process(clipper2.process((right)))/2.2;
+    *out1=left;
+    *out2=right;
    
     
     currentLevel += ramp;
@@ -369,6 +410,8 @@ void Genesis::Reset()
   filter34.set(fq17);
   filter35.set(fq18);
   filter36.set(fq18);
+  eq1.set(sr1);
+  eq2.set(sr2);
   lfo1.setSampleRate(sr1);
   lfo2.setSampleRate(sr2);
   lfo1.setFrequency(0.5);
@@ -379,12 +422,16 @@ void Genesis::Reset()
   gate2.set(sr1);
   comp1.set(sr1);
   comp2.set(sr1);
-  limiter1.set(2.0,50.0,0.9,sr1);
-  limiter2.set(2.0,50.0,0.9,sr1);
+  limiter5.set(2.0,50.0,0.9,sr1);
+  limiter6.set(2.0,50.0,0.9,sr1);
   limiter3.set(2.0,50.0,0.9,sr1);
   limiter4.set(2.0,50.0,0.9,sr1);
-  limiter5.set(0.03,500.0,0.25,sr1);
-  limiter6.set(0.03,500.0,0.25,sr1);
+  limiter1.set(0.0008,200.0,0.5,sr1);
+  limiter2.set(0.0008,200.0,0.5,sr1);
+  xcomp1.set(sr1);
+  xcomp2.set(sr1);
+  //xlimiter1.set(sr1);
+  //xlimiter2.set(sr1);
   //notch1.zero();
   //notch2.zero();
   //notch1.onDomainChange(sr2 / sr1);
