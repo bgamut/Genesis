@@ -313,14 +313,31 @@ private:
   double attack;
   double release;
 };
+
 class Limiter{
 public:
+  Limiter():
+    attackCoeff(0.0),
+    releaseCoeff(0.0),
+    env(0.0),
+    targetGain(1.0),
+    currentGain(1.0),
+    delayIndex(0)
+  {
+    set(0.0008,0.200,-6.0,44100);
+  };
   double process(double input);
-  void set(double attackMs, double releaseMs, double threshold, int sampleRate);
-  EnvelopeFollower ef;
+  void set(double attackMs, double releaseMs, double thresholdDb,int sampleRate);
 private:
-  double th;
-  double temp;
+  double attackCoeff;
+  double releaseCoeff;
+  double env;
+  double targetGain;
+  double currentGain;
+  int delayIndex;
+  int delayLength;
+  //double* delayLine;
+  double threshold;
 };
 class Gate{
 public:
@@ -431,8 +448,8 @@ private:
   double mGain;
   double l=0.0;
   double r=0.0;
-  double left=0.0;
-  double right=0.0;
+  double left;
+  double right;
   double peakOutL=0.0;
   double peakOutR=0.0;
   double peakSum=0.0;
@@ -477,14 +494,14 @@ private:
   HP48 filter34;
   HP24 filter35;
   HP24 filter36;
-  Eq3 eq1;
-  Eq3 eq2;
-  LFO lfo1;
-  LFO lfo2;
+  //Eq3 eq1;
+  //Eq3 eq2;
+  //LFO lfo1;
+  //LFO lfo2;
   Gate gate1;
   Gate gate2;
-  Compressor comp1;
-  Compressor comp2;
+  //Compressor comp1;
+  //Compressor comp2;
   //gam::Notch<double> notch1;
   //gam::Notch<double> notch2;
   //gam::FreqShift<double> shifter1;
@@ -495,18 +512,18 @@ private:
   Clipper clipper4;
   Limiter limiter1;
   Limiter limiter2;
-  Limiter limiter3;
-  Limiter limiter4;
-  Limiter limiter5;
-  Limiter limiter6;
-  Xcomp xcomp1;
-  Xcomp xcomp2;
-  Xlimiter xlimiter1;
-  Xlimiter xlimiter2;
-  EnvelopeFollower sidechain1;
-  EnvelopeFollower sidechain2;
-  EnvelopeFollower sidechain3;
-  EnvelopeFollower sidechain4;
+  //Limiter limiter3;
+  //Limiter limiter4;
+  //Limiter limiter5;
+  //Limiter limiter6;
+  //Xcomp xcomp1;
+  //Xcomp xcomp2;
+  //Xlimiter xlimiter1;
+  //Xlimiter xlimiter2;
+  //EnvelopeFollower sidechain1;
+  //EnvelopeFollower sidechain2;
+  //EnvelopeFollower sidechain3;
+  //EnvelopeFollower sidechain4;
 };
 
 #endif
