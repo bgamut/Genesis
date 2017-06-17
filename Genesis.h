@@ -324,10 +324,11 @@ public:
     currentGain(1.0),
     delayIndex(0)
   {
-    set(0.0008,0.200,-6.0,44100);
+    set(20.0,20.0,-6.0,44100);
   };
   double process(double input);
   void set(double attackMs, double releaseMs, double thresholdDb,int sampleRate);
+  void resetEnv();
 private:
   double attackCoeff;
   double releaseCoeff;
@@ -336,6 +337,7 @@ private:
   double currentGain;
   int delayIndex;
   int delayLength;
+  int sr;
   //double* delayLine;
   double threshold;
 };
@@ -512,8 +514,8 @@ private:
   Clipper clipper4;
   Limiter limiter1;
   Limiter limiter2;
-  //Limiter limiter3;
-  //Limiter limiter4;
+  Limiter limiter3;
+  Limiter limiter4;
   //Limiter limiter5;
   //Limiter limiter6;
   //Xcomp xcomp1;
