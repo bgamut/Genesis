@@ -40,10 +40,12 @@ enum ELayout
 };
 double toDB (double inputValue){
   //return 20.0 * ((inputValue) > 0.00001 ? log10f(inputValue) : -6.3);
-  return 20.0*log10f(inputValue);
+  //return 20.0*log10f(inputValue);
+  return log(inputValue)/log(powf(2.0, 1/6));
 }
-double toVolume(double dB){
-  return powf(10.0, dB);
+double toLinear(double dB){
+  //return powf(10.0, dB);
+  return powf(powf(2.0,1/6),(dB-6.0));
 }
 double LP6::process(double inputValue) {
   buf0 += cutoff * (inputValue - buf0);
@@ -212,6 +214,7 @@ double Gate::process(double inputValue){
 void EnvelopeFollower::set(double attackMs, double releaseMs, int sampleRate){
   attack=pow( 0.01, 1.0 / ( attackMs * sampleRate * 0.001 ) );
   release=pow( 0.01, 1.0 / ( releaseMs * sampleRate * 0.001 ) );
+  
 }
 void EnvelopeFollower::process(double input){
   temp=fabs(input);
@@ -220,20 +223,85 @@ void EnvelopeFollower::process(double input){
   else
     envelope=release*(envelope-temp)+temp;
 }
-void Limiter::set(double attackMs, double releaseMs, double threshold, int sampleRate){
-  ef.envelope=0.0;
-  ef.set(attackMs, releaseMs, sampleRate);
-  th=threshold;
+void Limiter::set(double attackMs, double releaseMs,double thresholdDb,int sampleRate){
+  attackCoeff=exp(-1/(attackMs*double(sampleRate)*1000.0));
+  releaseCoeff=exp(-1/(releaseMs*double(sampleRate)*1000.0));
+  delayIndex=0;
+  env=0.0;
+  threshold=toLinear(thresholdDb);
 }
+/*
 double Limiter::process(double input){
-  temp = input;
-  ef.process(temp);
-  if(ef.envelope>th){
-    return input*(th/ef.envelope);
+    delayLine[delayIndex]=input;
+    delayIndex=(delayIndex+1)%delayLength;
+    env *= releaseCoeff;
+    env = MAX(fabs(input), env);
+    if (env>threshold){
+      targetGain=(1+threshold-env);
+    }
+    else{
+      targetGain=1.0;
+    }
+    currentGain=currentGain*attackCoeff+targetGain*(1-attackCoeff);
+    return delayLine[delayIndex]*currentGain;
+}
+*/
+/*
+double Limiter::process(double input){
+  delayLine[delayIndex]=input;
+  delayIndex=(delayIndex+1)%delayLength;
+  env *= releaseCoeff;
+  env = MAX(fabs(input), env);
+  if (env>threshold){
+    targetGain=(threshold-(env-threshold));
   }
   else{
-    return input;
+    targetGain=1.0;
   }
+  currentGain=currentGain*attackCoeff+targetGain*(1-attackCoeff);
+  return delayLine[delayIndex]*currentGain;
+}
+*/
+/*
+double Limiter::process(double input){
+  delayLine[delayIndex]=input;
+  delayIndex=(delayIndex+1)%delayLength;
+  env *= releaseCoeff;
+  env = MAX(fabs(input), env);
+  if (env>threshold){
+    targetGain=(threshold-(env-threshold));
+  }
+  else{
+    targetGain=1.0;
+  }
+  currentGain=currentGain+targetGain;
+  return delayLine[delayIndex]*currentGain;
+}
+ */
+/*
+double Limiter::process(double input){
+  delayLine[delayIndex]=input;
+  delayIndex=(delayIndex+1)%delayLength;
+  env = MAX(fabs(input), env);
+  if (env>threshold){
+    targetGain=attackCoeff;
+  }
+  else{
+    targetGain=releaseCoeff;
+  }
+  currentGain=input+targetGain*(currentGain-input);
+  return delayLine[delayIndex]*currentGain;
+}
+*/
+double Limiter::process(double input){
+  env = MAX(fabs(input), env);
+  if (env>0.5){
+    targetGain=threshold/env;
+  }
+  else{
+    targetGain=1.0;
+  }
+  return input*targetGain;
 }
 
 void Xcomp::set(int sampleRate){
@@ -321,17 +389,14 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
   for (int s = 0; s < nFrames; ++s, ++in1, ++in2,++in3,++in4, ++out1, ++out2) {
     l = filter35.process(filter33.process(filter31.process(filter29.process(gate1.process(*in1*currentLevel)))));
     r = filter36.process(filter34.process(filter32.process(filter30.process(gate2.process(*in2*currentLevel)))));
-    
-    
-    left =(clipper3.process(clipper1.process((*in3*5.0)+6*filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 16))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l)/7)))))))))/10.0);
-    right=(clipper4.process(clipper2.process((*in4*5.0)+6*filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 16))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r)/7)))))))))/10.0);
-
-    *out1=left;
-    *out2=right;
-   
-    
+    left =(clipper3.process(clipper1.process((*in3*40.0)+6*filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 16))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 8))))) + (l)/7)))))))*16.0)));
+    right=(clipper4.process(clipper2.process((*in4*40.0)+6*filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 16))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 8))))) + (r)/7)))))))*16.0)));
+    *out1=limiter1.process(left)/2.0;
+    *out2=limiter2.process(right)/2.0;
     currentLevel += ramp;
   }
+  //limiter1.process(left,out1);
+  //limiter2.process(right,out2);
 }
   
 
@@ -363,17 +428,17 @@ void Genesis::Reset()
   r=0.0;
   left=0.0;
   right=0.0;
-  peakOutL=0.0;
-  peakOutR=0.0;
-  peakSum=0.0;
-  gainDb=0.0;
-  gain=0.0;
-  ratio=10.0;
-  thresholdDb=(-12.0);
-  envelope=0.0;
-  gain=1.0;
-  attackCoeff=1.0-exp(-1/(attackTime*sr1));
-  releaseCoeff=1.0-exp(-1/(releaseTime*sr1));
+  //peakOutL=0.0;
+  //peakOutR=0.0;
+  //peakSum=0.0;
+  //gainDb=0.0;
+  //gain=0.0;
+  //ratio=10.0;
+  //thresholdDb=(-12.0);
+  //envelope=0.0;
+  //gain=1.0;
+  //attackCoeff=1.0-exp(-1/(attackTime*sr1));
+  //releaseCoeff=1.0-exp(-1/(releaseTime*sr1));
   filter1.set(fq1);
   filter2.set(fq2);
   filter3.set(fq3);
@@ -410,26 +475,26 @@ void Genesis::Reset()
   filter34.set(fq17);
   filter35.set(fq18);
   filter36.set(fq18);
-  eq1.set(sr1);
-  eq2.set(sr2);
-  lfo1.setSampleRate(sr1);
-  lfo2.setSampleRate(sr2);
-  lfo1.setFrequency(0.5);
-  lfo2.setFrequency(0.5);
-  lfo1.setPhase(0.0);
-  lfo2.setPhase(PI);
+  //eq1.set(sr1);
+  //eq2.set(sr2);
+  //lfo1.setSampleRate(sr1);
+  //lfo2.setSampleRate(sr2);
+  //lfo1.setFrequency(0.5);
+  //lfo2.setFrequency(0.5);
+  //lfo1.setPhase(0.0);
+  //lfo2.setPhase(PI);
   gate1.set(sr1);
   gate2.set(sr1);
-  comp1.set(sr1);
-  comp2.set(sr1);
-  limiter5.set(2.0,50.0,0.9,sr1);
-  limiter6.set(2.0,50.0,0.9,sr1);
-  limiter3.set(2.0,50.0,0.9,sr1);
-  limiter4.set(2.0,50.0,0.9,sr1);
-  limiter1.set(0.0008,200.0,0.5,sr1);
-  limiter2.set(0.0008,200.0,0.5,sr1);
-  xcomp1.set(sr1);
-  xcomp2.set(sr1);
+  //comp1.set(sr1);
+  //comp2.set(sr1);
+  //limiter5.set(2.0,50.0,0.9,sr1);
+  //limiter6.set(2.0,50.0,0.9,sr1);
+  //limiter3.set(2.0,50.0,0.9,sr1);
+  //limiter4.set(2.0,50.0,0.9,sr1);
+  limiter1.set(0.0008,200.0,-6.0,sr1);
+  limiter2.set(0.0008,200.0,-6.0,sr1);
+  //xcomp1.set(sr1);
+  //xcomp2.set(sr1);
   //xlimiter1.set(sr1);
   //xlimiter2.set(sr1);
   //notch1.zero();
