@@ -355,10 +355,10 @@ void Genesis::ProcessDoubleReplacing(double** inputs, double** outputs, int nFra
   for (int s = 0; s < nFrames; ++s, ++in1, ++in2,++in3,++in4, ++out1, ++out2) {
     l = filter35.process(filter33.process(filter31.process(filter29.process(gate1.process(*in1)))));
     r = filter36.process(filter34.process(filter32.process(filter30.process(gate2.process(*in2)))));
-    left =(*in3*(1.0*currentLevel))+3*filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 8))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 4))))) + (l)/4)))))))*(1.0*currentLevel);
-    right=(*in4*(1.0*currentLevel))+3*filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 8))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 4))))) + (r)/4)))))))*(1.0*currentLevel);
-    *out1=(limiter3.process(limiter1.process(clipper3.process(clipper1.process(left))/2.0)));
-    *out2=(limiter4.process(limiter2.process(clipper4.process(clipper2.process(right))/2.0)));
+    left =(*in3*(1.0*currentLevel))+1.0*filter27.process(filter25.process(filter23.process(filter21.process(12 * filter19.process(filter17.process(filter8.process(filter3.process(filter2.process(filter1.process(((l) + (r)) / 24))) + (filter7.process(filter6.process(filter5.process(filter4.process(3 * (l - r) / 4))))) + (l)/4)))))))*(1.0*currentLevel);
+    right=(*in4*(1.0*currentLevel))+1.0*filter28.process(filter26.process(filter24.process(filter22.process(12 * filter20.process(filter18.process(filter16.process(filter11.process(filter10.process(filter9.process(((l) + (r)) / 24))) + (filter15.process(filter14.process(filter13.process(filter12.process(3 * (l - r) / 4))))) + (r)/4)))))))*(1.0*currentLevel);
+    *out1=(limiter3.process(limiter1.process(clipper3.process(clipper1.process(left+*in1/16.0))/2.0)));
+    *out2=(limiter4.process(limiter2.process(clipper4.process(clipper2.process(right+*in2/16.0))/2.0)));
     currentLevel += ramp;
   }
   //limiter1.process(left,out1);
